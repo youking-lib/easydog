@@ -1,0 +1,4 @@
+tests/**/*.test.js
+dist/*.js
+--require @babel/register
+--reporter=spec
