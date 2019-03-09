@@ -9,7 +9,7 @@ export default {
     file: './dist/index.esm.js',
     format: 'esm'
   }, {
-    file: './dist/index.umd.js',
+    file: './easydog.js',
     format: 'umd',
     name: 'easydog'
   }],
