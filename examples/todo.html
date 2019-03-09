@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="../dist/index.umd.js"></script>
+</head>
+<body>
+  <div id="app">
+    <span class="reduce">-</span>
+    <span class="val"></span>
+    <span class="add">+</span>
+
+    <div>
+      <span class="undo">undo</span>
+      <span class="redo">redo</span>
+    </div>
+  </div>
+
+  <script>
+    const val = document.querySelector('.val')
+    
+    const app = {
+      namespace: 'app',
+      state: {
+        past: [],
+        current: 0,
+        future: []
+      },
+      actions: {
+        change (state, val) {
+          const newPast = [...state.past, state.current]
+
+          this.setState({
+            past: newPast,
+            current: val
+          })
+        },
+
+        undo ({ past, future, current }) {
+          if (past.length === 0) { return }
+          
+          const previous = past.pop()
+          const newFuture = [current, ...future]
+
+          this.setState({
+            past: [...past],
+            current: previous,
+            future: newFuture
+          })
+        },
+
+        redo ({ past, future, current }) {
+          if (future.length === 0) {
+            return
+          }
+
+          const next = future.shift()
+          const newPast = [...past, current]
+
+          this.setState({
+            past: newPast,
+            current: next,
+            future: [...future]
+          })
+        }
+      }
+    }
+
+    const store = easydog.createStore({ modules: app })
+    const states = store.mapStates({
+      val: 'app/current'
+    })
+
+    const actions = store.mapActions({
+      change: 'app/change',
+      add (dispatch, val) {
+        dispatch('app/change', states.val + 1)
+        render()
+      },
+      reduce (dispatch) {
+        dispatch('app/change', states.val - 1)
+        render()
+      },
+      undo (dispatch) {
+        dispatch('app/undo', states.val)
+        render()
+      },
+      redo (dispatch) {
+        dispatch('app/redo', states.val)
+        render()
+      }
+    })
+
+    function render () {
+      val.innerText = states.val
+    }
+
+    function initEvent () {
+      document.querySelectorAll('span').forEach(spanEl => {
+        const key = spanEl.getAttribute('class')
+        if (actions[key]) {
+          spanEl.onclick = () => {
+            actions[key]()
+          }
+        }
+      })
+    }
+    initEvent()
+    render()
+  </script>
+</body>
+</html>
