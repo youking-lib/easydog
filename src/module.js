@@ -1,5 +1,3 @@
-import { normalizePath } from './utils'
-
 export default class Module {
   constructor (m, _store) {
     this._store = _store
@@ -9,22 +7,11 @@ export default class Module {
   }
 
   dispatch (path, ...args) {
-    let action = this.actions[path]
-    let ns = this
-
-    if (!action) {
-      let nskey = normalizePath(path)
-
-      ns = nskey.ns
-      path = nskey.key
-      ns = this._store._module[ns]
-      
-      if (!ns) { return }
-      
-      action = ns.actions[path]
+    if (path.indexOf('/') === -1) {
+      path = this.namespace + '/' + path
     }
 
-    return action.call(ns, ns.state,...args)
+    return this._store.dispatch(path, ...args)
   }
 
   setState (state) {
