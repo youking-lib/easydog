@@ -1,5 +1,5 @@
 import Module from './module'
-import { forEachValue, normalizePath } from './utils'
+import { forEachValue, normalizePath, proxyGetter } from './utils'
 
 export default class Store {
   constructor (options = {}) {
@@ -16,29 +16,43 @@ export default class Store {
 
   mapActions = map => {
     let res = {}
-    forEachValue(map, (path, fname) => {
-      const { ns, key } = normalizePath(path);
-      res[fname] = (...args) => {
-        const m = this._module[ns]
-
-        if (!m) { return }
-        const action = m.actions[key]
-        return action.apply(m, args)
+    forEachValue(map, (path, fkey) => {
+      let fn
+      
+      if (typeof path === 'function') {
+        fn = (...args) => {
+          path(this.dispatch, ...args)
+        }
+      } else {
+        fn = (...args) => {
+          this.dispatch(path, ...args)
+        }
       }
+      
+      res[fkey] = fn
     })
     return res
+  }
+
+  dispatch = (path, ...args) => {
+    let { ns } = normalizePath(path);
+    ns = this._module[ns]
+
+    if (!ns) { return }
+
+    return ns.dispatch(path, ...args)
   }
 
   mapStates = map => {
     let res= {}
     
-    forEachValue(map, (path, fname) => {
+    forEachValue(map, (path, fkey) => {
       const { ns, key } = normalizePath(path);
       const m = this._module[ns]
 
       if (!m) { return }
       
-      res[fname] = m.state[key]
+      proxyGetter(res, fkey, m.state, key)
     })
     return res
   }

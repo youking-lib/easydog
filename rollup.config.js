@@ -8,6 +8,10 @@ export default {
   }, {
     file: './dist/index.esm.js',
     format: 'esm'
+  }, {
+    file: './dist/index.umd.js',
+    format: 'umd',
+    name: 'easydog'
   }],
   plugins: [
     babel({

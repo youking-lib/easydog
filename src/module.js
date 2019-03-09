@@ -1,3 +1,5 @@
+import { normalizePath } from './utils'
+
 export default class Module {
   constructor (m, _store) {
     this._store = _store
@@ -7,17 +9,22 @@ export default class Module {
   }
 
   dispatch (path, ...args) {
-    let [ns, key] = path.split('/')
+    let action = this.actions[path]
+    let ns = this
 
-    if (!key) {
-      key = ns
-      ns = this
-    } else {
+    if (!action) {
+      let nskey = normalizePath(path)
+
+      ns = nskey.ns
+      path = nskey.key
       ns = this._store._module[ns]
+      
+      if (!ns) { return }
+      
+      action = ns.actions[path]
     }
 
-    const action = ns.actions[key]
-    action.apply(ns, args)
+    return action.call(ns, ns.state,...args)
   }
 
   setState (state) {
