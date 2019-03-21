@@ -1,4 +1,3 @@
-import Module from './module'
 import { forEachValue, normalizePath, proxyGetter } from './utils'
 
 export default class Store {
@@ -6,18 +5,18 @@ export default class Store {
     
     this._state = {}
     this._module = {}
-    this.setModules(options.modules);
+
+    ;([]).concat(options.modules).forEach(m => {
+      this.setModule(new m(this));
+    })
   }
 
-  setModules (modules) {
-    [].concat(modules).forEach(m => {
-      let ns = m.namespace
-      let _m = new Module(m, this)
-      
-      this._module[ns] = _m
-      Object.defineProperty(this._state, ns, {
-        get: () => _m.state
-      })
+  setModule (m) {
+    let ns = m.namespace
+    
+    this._module[ns] = m
+    Object.defineProperty(this._state, ns, {
+      get: () => m.state
     })
   }
 
@@ -25,15 +24,23 @@ export default class Store {
     return this._state
   }
 
+  _dispatch = ({ module, actionName, setState }, ...args) => {
+    const action = module[actionName]
+
+    return action.call(module, setState, ...args)
+  }
+
   dispatch = (path, ...args) => {
-    let { ns, key } = normalizePath(path);
+    let { ns, key } = normalizePath(path)
     ns = this._module[ns]
-
+    
     if (!ns) { return }
-
-    let action = ns.actions[key]
-
-    return action.call(ns, ns.state,...args)
+    
+    this._dispatch({
+      module: ns,
+      actionName: key,
+      setState: ns._setState
+    }, ...args)
   }
 
   mapActions = map => {

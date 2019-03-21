@@ -1,6 +1,8 @@
 import Store from './store'
 import { compose } from './utils'
 
+export { default as Module } from './module'
+
 export function createStore (options) {
   return new Store(options)
 }

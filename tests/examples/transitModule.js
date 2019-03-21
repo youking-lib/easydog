@@ -1,17 +1,25 @@
-export default {
-  namespace: 'transitModule',
-  state: {
-    transits: null
-  },
-  actions: {
-    getTransits () {
-      let data = { routes: [1,2,3] }
+import { Module } from '../../dist/index.esm'
 
-      this.dispatch('walkModel/getWalks', {})
+export default class TransitModule extends Module {
+  constructor (store) {
+    super(store)
 
-      this.setState({
-        transits: data
-      })
-    },
+    this.state = {
+      transits: null
+    }
+  }
+
+  getTransits (setState) {
+    let data = { routes: [1,2,3] }
+
+    this.dispatch('walkModel/getWalks', {})
+
+    setState({
+      transits: data
+    })
+  }
+
+  add () {
+    console.log('add has been call')
   }
 }
