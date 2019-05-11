@@ -22,7 +22,19 @@ export function applyMiddleware (...middlewares) {
     }
     const chain = middlewares.map(m => m(api))
 
-    store.dispatch = compose(...chain)(store.dispatch)
+    store._dispatch = compose(...chain)(store._dispatch)
     return store
+  }
+}
+
+export const loggerMiddleWare = (opt = {}) => store => dispatch => {
+  return ({ module, actionName, setState }, ...args) => {
+    opt.beforeDispath && opt.beforeDispath(actionName, module)
+
+    dispatch({ module, actionName, setState: (...args) => {
+      opt.beforeSetState && opt.beforeSetState(actionName, module)
+      setState(...args)
+      opt.afterSetState && opt.afterSetState(actionName, module)
+    }}, ...args)
   }
 }

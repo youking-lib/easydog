@@ -339,14 +339,44 @@
         var chain = middlewares.map(function (m) {
           return m(api);
         });
-        store.dispatch = compose.apply(void 0, _toConsumableArray(chain))(store.dispatch);
+        store._dispatch = compose.apply(void 0, _toConsumableArray(chain))(store._dispatch);
         return store;
       };
     };
   }
+  var loggerMiddleWare = function loggerMiddleWare() {
+    var opt = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    return function (store) {
+      return function (dispatch) {
+        return function (_ref) {
+          var module = _ref.module,
+              actionName = _ref.actionName,
+              _setState = _ref.setState;
+          opt.beforeDispath && opt.beforeDispath(actionName, module);
+
+          for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+            args[_key2 - 1] = arguments[_key2];
+          }
+
+          dispatch.apply(void 0, [{
+            module: module,
+            actionName: actionName,
+            setState: function setState() {
+              opt.beforeSetState && opt.beforeSetState(actionName, module);
+
+              _setState.apply(void 0, arguments);
+
+              opt.afterSetState && opt.afterSetState(actionName, module);
+            }
+          }].concat(args));
+        };
+      };
+    };
+  };
 
   exports.createStore = createStore;
   exports.applyMiddleware = applyMiddleware;
+  exports.loggerMiddleWare = loggerMiddleWare;
   exports.Module = Module;
 
   Object.defineProperty(exports, '__esModule', { value: true });

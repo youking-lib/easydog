@@ -62,6 +62,15 @@
   <script>
     const val = document.querySelector('.val')
     const loglistEl = document.querySelector('.loglist')
+    let { applyMiddleware, loggerMiddleWare, createStore } = easydog
+    createStore = applyMiddleware(loggerMiddleWare({
+      beforeDispath (actionName) {
+        logComponent(actionName)
+      },
+      beforeSetState (actionName) {
+        logComponent('setState: ' + actionName)
+      }
+    }))(createStore)
     
     class app extends easydog.Module {
       constructor (store) {
@@ -115,7 +124,7 @@
       }
     }
 
-    const store = easydog.createStore({ modules: app })
+    const store = createStore({ modules: app })
     const states = store.mapStates({
       val: 'app/current'
     })
@@ -139,19 +148,20 @@
         render('app/redo')
       }
     })
-
-    let history = []
     
     function render (action) {
       val.innerText = states.val
-      
+    }
+    
+    let history = []
+
+    function logComponent (message) {
       history.unshift({
-        action,
+        message,
         state: JSON.stringify(store._module.app.state)
       })
-
       loglistEl.innerHTML = history.map(log => {
-        return `<li>${log.action}: ${log.state}</li>`
+        return `<li>${log.message}: ${log.state}</li>`
       }).join('<br />')
     }
 
