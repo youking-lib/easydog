@@ -7,7 +7,7 @@ export default class Store {
     this._module = {}
 
     ;([]).concat(options.modules).forEach(m => {
-      this.setModule(new m(this));
+      this.setModule(new m(this))
     })
   }
 
@@ -36,7 +36,7 @@ export default class Store {
     
     if (!ns) { return }
     
-    this._dispatch({
+    return this._dispatch({
       module: ns,
       actionName: key,
       setState: ns._setState

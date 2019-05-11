@@ -189,7 +189,7 @@
           args[_key2 - 1] = arguments[_key2];
         }
 
-        _this._dispatch.apply(_this, [{
+        return _this._dispatch.apply(_this, [{
           module: ns,
           actionName: key,
           setState: ns._setState
