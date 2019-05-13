@@ -165,7 +165,7 @@
         var module = _ref.module,
             actionName = _ref.actionName,
             setState = _ref.setState;
-        var action = module[actionName];
+        var action = module.actions[actionName];
 
         for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
           args[_key - 1] = arguments[_key];
@@ -192,7 +192,7 @@
         return _this._dispatch.apply(_this, [{
           module: ns,
           actionName: key,
-          setState: ns._setState
+          setState: _this.setState.bind(_this, ns)
         }].concat(args));
       });
 
@@ -245,15 +245,28 @@
       this._state = {};
       this._module = {};
       [].concat(options.modules).forEach(function (m) {
-        _this.setModule(new m(_this));
+        return _this.setModule(m);
       });
     }
 
     _createClass(Store, [{
       key: "setModule",
       value: function setModule(m) {
+        var _this2 = this;
+
         var ns = m.namespace;
         this._module[ns] = m;
+
+        m.dispatch = function (path) {
+          path += path.indexOf('/') === -1 ? ns : '';
+
+          for (var _len5 = arguments.length, args = new Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+            args[_key5 - 1] = arguments[_key5];
+          }
+
+          _this2.dispatch.apply(_this2, [path].concat(args));
+        };
+
         Object.defineProperty(this._state, ns, {
           get: function get() {
             return m.state;
@@ -265,55 +278,14 @@
       value: function getState() {
         return this._state;
       }
+    }, {
+      key: "setState",
+      value: function setState(module, state) {
+        Object.assign(module.state, state);
+      }
     }]);
 
     return Store;
-  }();
-
-  var Module =
-  /*#__PURE__*/
-  function () {
-    function Module(_store, namespace) {
-      var _this = this;
-
-      _classCallCheck(this, Module);
-
-      _defineProperty(this, "_setState", function (state) {
-        Object.assign(_this.state, state);
-      });
-
-      if ((this instanceof Module ? this.constructor : void 0) === Module) {
-        throw new Error('Module 类只能继承后调用');
-      }
-
-      this._store = _store;
-      this.state = {};
-      this.namespace = namespace || (this instanceof Module ? this.constructor : void 0).name;
-    }
-
-    _createClass(Module, [{
-      key: "dispatch",
-      value: function dispatch(path) {
-        var _this$_store;
-
-        if (path.indexOf('/') === -1) {
-          return this._store._dispatch({
-            module: this,
-            actionName: path,
-            setState: this._setState
-          });
-        } // dispath 其他 module 的 action
-
-
-        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          args[_key - 1] = arguments[_key];
-        }
-
-        return (_this$_store = this._store).dispatch.apply(_this$_store, [path].concat(args));
-      }
-    }]);
-
-    return Module;
   }();
 
   function createStore(options) {
@@ -377,7 +349,6 @@
   exports.createStore = createStore;
   exports.applyMiddleware = applyMiddleware;
   exports.loggerMiddleWare = loggerMiddleWare;
-  exports.Module = Module;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

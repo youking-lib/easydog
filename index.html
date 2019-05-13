@@ -67,60 +67,51 @@
       beforeDispath (actionName) {
         logComponent(actionName)
       },
-      beforeSetState (actionName) {
+      afterSetState (actionName) {
         logComponent('setState: ' + actionName)
       }
     }))(createStore)
     
-    class app extends easydog.Module {
-      constructor (store) {
-        super(store)
-        this.state = {
-          past: [],
-          current: 0,
-          future: []
+    const app = {
+      namespace: 'app',
+      state: {
+        past: [],
+        current: 0,
+        future: []
+      },
+      actions: {
+        change (setState, val) {
+          const newPast = [...this.state.past, this.state.current]
+          setState({
+            past: newPast,
+            current: val
+          })
+        },
+        undo (setState) {
+          const { past, future, current } = this.state
+          if (past.length === 0) { return }
+          
+          const previous = past.pop()
+          const newFuture = [current, ...future]
+          setState({
+            past: [...past],
+            current: previous,
+            future: newFuture
+          })
+        },
+        redo (setState) {
+          const { past, future, current } = this.state
+          if (future.length === 0) {
+            return
+          }
+          const next = future.shift()
+          const newPast = [...past, current]
+          setState({
+            past: newPast,
+            current: next,
+            future: [...future]
+          })
         }
-      }
-      
-      change (setState, val) {
-        const newPast = [...this.state.past, this.state.current]
-
-        setState({
-          past: newPast,
-          current: val
-        })
-      }
-
-      undo (setState) {
-        const { past, future, current } = this.state
-        
-        if (past.length === 0) { return }
-        
-        const previous = past.pop()
-        const newFuture = [current, ...future]
-
-        setState({
-          past: [...past],
-          current: previous,
-          future: newFuture
-        })
-      }
-
-      redo (setState) {
-        const { past, future, current } = this.state
-        
-        if (future.length === 0) {
-          return
-        }
-
-        const next = future.shift()
-        const newPast = [...past, current]
-
-        setState({
-          past: newPast,
-          current: next,
-          future: [...future]
-        })
       }
     }
 
