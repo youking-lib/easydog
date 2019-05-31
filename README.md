@@ -2,6 +2,8 @@
 
 Easydog 是一个前端状态管理工具，简化开发体验。适合小程序等项目等的开发。
 
+[查看demo](http://tks-model.pages.oa.com/)
+
 ## 快速上手
 
 ### 创建一个 module
