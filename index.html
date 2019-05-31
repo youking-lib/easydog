@@ -62,15 +62,16 @@
   <script>
     const val = document.querySelector('.val')
     const loglistEl = document.querySelector('.loglist')
-    let { applyMiddleware, loggerMiddleWare, createStore } = easydog
-    createStore = applyMiddleware(loggerMiddleWare({
+    let { loggerMiddleWare, createStore } = easydog
+
+    const loggerPlugin = loggerMiddleWare({
       beforeDispath (actionName) {
         logComponent(actionName)
       },
       afterSetState (actionName) {
         logComponent('setState: ' + actionName)
       }
-    }))(createStore)
+    })
     
     const app = {
       namespace: 'app',
@@ -115,7 +116,10 @@
       }
     }
 
-    const store = createStore({ modules: app })
+    const store = createStore({
+      modules: app,
+      plugins: [loggerPlugin]
+    })
     const states = store.mapStates({
       val: 'app/current'
     })

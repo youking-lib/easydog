@@ -254,12 +254,23 @@
       [].concat(options.modules).forEach(function (m) {
         return _this.setModule(m);
       });
+      this.setPlugin([].concat(options.plugins));
     }
 
     _createClass(Store, [{
+      key: "setPlugin",
+      value: function setPlugin(plugins) {
+        var _this2 = this;
+
+        var chain = plugins.map(function (m) {
+          return m(_this2);
+        });
+        this._dispatch = compose.apply(void 0, _toConsumableArray(chain))(this._dispatch);
+      }
+    }, {
       key: "setModule",
       value: function setModule(m) {
-        var _this2 = this;
+        var _this3 = this;
 
         var ns = m.namespace;
         this._module[ns] = m;
@@ -271,7 +282,7 @@
             args[_key5 - 1] = arguments[_key5];
           }
 
-          return _this2.dispatch.apply(_this2, [prefix + path].concat(args));
+          return _this3.dispatch.apply(_this3, [prefix + path].concat(args));
         };
 
         m.__setState = this.setState.bind(this, m);
@@ -294,31 +305,6 @@
   function createStore(options) {
     return new Store(options);
   }
-  function applyMiddleware() {
-    for (var _len = arguments.length, middlewares = new Array(_len), _key = 0; _key < _len; _key++) {
-      middlewares[_key] = arguments[_key];
-    }
-
-    return function (createStore) {
-      return function () {
-        var store = createStore.apply(void 0, arguments);
-
-        var dispatch = function dispatch() {
-          throw new Error('Dispatching while constructing your middleware is not allowed. ' + 'Other middleware would not be applied to this dispatch.');
-        };
-
-        var api = {
-          getState: store.getState,
-          dispatch: dispatch
-        };
-        var chain = middlewares.map(function (m) {
-          return m(api);
-        });
-        store._dispatch = compose.apply(void 0, _toConsumableArray(chain))(store._dispatch);
-        return store;
-      };
-    };
-  }
   var loggerMiddleWare = function loggerMiddleWare() {
     var opt = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     return function (store) {
@@ -329,8 +315,8 @@
               _setState = _ref.setState;
           opt.beforeDispath && opt.beforeDispath(actionName, module);
 
-          for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-            args[_key2 - 1] = arguments[_key2];
+          for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+            args[_key - 1] = arguments[_key];
           }
 
           dispatch.apply(void 0, [{
@@ -350,7 +336,6 @@
   };
 
   exports.createStore = createStore;
-  exports.applyMiddleware = applyMiddleware;
   exports.loggerMiddleWare = loggerMiddleWare;
 
   Object.defineProperty(exports, '__esModule', { value: true });

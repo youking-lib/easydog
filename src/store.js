@@ -1,4 +1,4 @@
-import { forEachValue, normalizePath, proxyGetter } from './utils'
+import { forEachValue, normalizePath, proxyGetter, compose } from './utils'
 
 export default class Store {
   constructor (options = {}) {
@@ -7,6 +7,14 @@ export default class Store {
     this._module = {}
 
     ;([]).concat(options.modules).forEach(m => this.setModule(m))
+    
+    this.setPlugin([].concat(options.plugins))
+  }
+
+  setPlugin (plugins) {
+    const chain = plugins.map(m => m(this))
+
+    this._dispatch = compose(...chain)(this._dispatch)
   }
 
   setModule (m) {
