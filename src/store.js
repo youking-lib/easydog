@@ -12,17 +12,18 @@ export default class Store {
   setModule (m) {
     let ns = m.namespace
     this._module[ns] = m
-    m.dispatch = (path, ...args) => {
-      path += path.indexOf('/') === -1 ? ns : ''
-      this.dispatch(path, ...args)
+    m.__dispatch = (path, ...args) => {
+      const prefix = (path.indexOf('/') === -1 ? (ns + '/') : '')
+      return this.dispatch(prefix + path, ...args)
     }
+    m.__setState = this.setState.bind(this, m)
     
     Object.defineProperty(this._state, ns, {
       get: () => m.state
     })
   }
 
-  getState () {
+  getState = () => {
     return this._state
   }
 
@@ -33,7 +34,7 @@ export default class Store {
   _dispatch = ({ module, actionName, setState }, ...args) => {
     const action = module.actions[actionName]
 
-    return action.call(module, setState, ...args)
+    return action.call(module, { setState, dispatch: module.__dispatch }, ...args)
   }
 
   dispatch = (path, ...args) => {
@@ -45,7 +46,7 @@ export default class Store {
     return this._dispatch({
       module: ns,
       actionName: key,
-      setState: this.setState.bind(this, ns)
+      setState: ns.__setState
     }, ...args)
   }
 

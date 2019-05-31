@@ -80,14 +80,14 @@
         future: []
       },
       actions: {
-        change (setState, val) {
+        change ({ setState }, val) {
           const newPast = [...this.state.past, this.state.current]
           setState({
             past: newPast,
             current: val
           })
         },
-        undo (setState) {
+        undo ({ setState }) {
           const { past, future, current } = this.state
           if (past.length === 0) { return }
           
@@ -99,7 +99,7 @@
             future: newFuture
           })
         },
-        redo (setState) {
+        redo ({ setState }) {
           const { past, future, current } = this.state
           if (future.length === 0) {
             return

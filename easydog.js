@@ -161,6 +161,10 @@
 
       _classCallCheck(this, Store);
 
+      _defineProperty(this, "getState", function () {
+        return _this._state;
+      });
+
       _defineProperty(this, "_dispatch", function (_ref) {
         var module = _ref.module,
             actionName = _ref.actionName,
@@ -171,7 +175,10 @@
           args[_key - 1] = arguments[_key];
         }
 
-        return action.call.apply(action, [module, setState].concat(args));
+        return action.call.apply(action, [module, {
+          setState: setState,
+          dispatch: module.__dispatch
+        }].concat(args));
       });
 
       _defineProperty(this, "dispatch", function (path) {
@@ -192,7 +199,7 @@
         return _this._dispatch.apply(_this, [{
           module: ns,
           actionName: key,
-          setState: _this.setState.bind(_this, ns)
+          setState: ns.__setState
         }].concat(args));
       });
 
@@ -257,26 +264,22 @@
         var ns = m.namespace;
         this._module[ns] = m;
 
-        m.dispatch = function (path) {
-          path += path.indexOf('/') === -1 ? ns : '';
+        m.__dispatch = function (path) {
+          var prefix = path.indexOf('/') === -1 ? ns + '/' : '';
 
           for (var _len5 = arguments.length, args = new Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
             args[_key5 - 1] = arguments[_key5];
           }
 
-          _this2.dispatch.apply(_this2, [path].concat(args));
+          return _this2.dispatch.apply(_this2, [prefix + path].concat(args));
         };
 
+        m.__setState = this.setState.bind(this, m);
         Object.defineProperty(this._state, ns, {
           get: function get() {
             return m.state;
           }
         });
-      }
-    }, {
-      key: "getState",
-      value: function getState() {
-        return this._state;
       }
     }, {
       key: "setState",
