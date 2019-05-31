@@ -7,66 +7,60 @@ Easydog 是一个前端状态管理工具，简化开发体验。适合小程序
 ### 创建一个 module
 
 ```js
-class app extends easydog.Module {
-  constructor (store) {
-    super(store, 'app')
-    this.state = {}
-  }
+const app = {
+  namespace: 'app',
+  state: {
+    past: [],
+    current: 0,
+    future: []
+  },
+  actions: {}
 }
 ```
 
 添加 actions
 
 ```js
-class app extends easydog.Module {
-  constructor (store) {
-    super(store)
-    this.state = {
-      past: [],
-      current: 0,
-      future: []
+const app = {
+  namespace: 'app',
+  state: {
+    past: [],
+    current: 0,
+    future: []
+  },
+  actions: {
+    change ({ setState }, val) {
+      const newPast = [...this.state.past, this.state.current]
+      setState({
+        past: newPast,
+        current: val
+      })
+    },
+    undo ({ setState }) {
+      const { past, future, current } = this.state
+      if (past.length === 0) { return }
+      
+      const previous = past.pop()
+      const newFuture = [current, ...future]
+      setState({
+        past: [...past],
+        current: previous,
+        future: newFuture
+      })
+    },
+    redo ({ setState }) {
+      const { past, future, current } = this.state
+      if (future.length === 0) {
+        return
+      }
+      const next = future.shift()
+      const newPast = [...past, current]
+      setState({
+        past: newPast,
+        current: next,
+        future: [...future]
+      })
     }
-  }
-  
-  change (setState, val) {
-    const newPast = [...this.state.past, this.state.current]
-
-    setState({
-      past: newPast,
-      current: val
-    })
-  }
-
-  undo (setState) {
-    const { past, future, current } = this.state
-    
-    if (past.length === 0) { return }
-    
-    const previous = past.pop()
-    const newFuture = [current, ...future]
-
-    setState({
-      past: [...past],
-      current: previous,
-      future: newFuture
-    })
-  }
-
-  redo (setState) {
-    const { past, future, current } = this.state
-    
-    if (future.length === 0) {
-      return
-    }
-
-    const next = future.shift()
-    const newPast = [...past, current]
-
-    setState({
-      past: newPast,
-      current: next,
-      future: [...future]
-    })
   }
 }
 ```
@@ -74,7 +68,7 @@ class app extends easydog.Module {
 ### 创建 Store
 
 ```js
-const store = easydog.createStore({ modules: app })
+const store = createStore({ modules: app })
 ```
 
 ### 获取对状态读取和修改的方法
